@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nature Gallery</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#8fd3a6;
+      --glass: rgba(255,255,255,0.04);
+      --text:#e6eef6;
+      --gap:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, sans-serif;
+      background: linear-gradient(180deg,#071020 0%, #0d1a26 100%);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:32px;
+    }
+
+    header{max-width:1100px;margin:0 auto 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    h1{margin:0;font-size:clamp(18px,3vw,28px);letter-spacing:0.6px}
+    p.lead{margin:6px 0 0;color:rgba(230,238,246,0.75);font-size:14px}
+
+    .gallery{
+      max-width:1100px;
+      margin:18px auto 60px;
+      display:grid;
+      grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+      gap:var(--gap);
+      align-items:start;
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 6px 18px rgba(2,6,23,0.6);
+      transition:transform .28s ease, box-shadow .28s ease;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+    }
+    .card:focus{outline:3px solid rgba(143,211,166,0.18)}
+    .card:hover{transform:translateY(-6px); box-shadow:0 10px 30px rgba(2,6,23,0.75)}
+
+    .thumb{
+      width:100%;
+      padding-top:66%; /* 3:2 aspect */
+      background-size:cover;
+      background-position:center;
+      position:relative;
+    }
+    .caption{
+      padding:12px 14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .caption .title{font-weight:600;font-size:15px}
+    .caption .meta{font-size:13px;color:rgba(230,238,246,0.65)}
+
+    /* Lightbox */
+    .lightbox{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(2,6,23,0.8);
+      z-index:1200;
+      padding:28px;
+    }
+    .lightbox.show{display:flex}
+    .lb-inner{
+      max-width:1200px;
+      width:100%;
+      border-radius:12px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      box-shadow:0 20px 50px rgba(2,6,23,0.8);
+      overflow:hidden;
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap:0;
+    }
+    .lb-image{
+      position:relative;
+      min-height:60vh;
+      background-size:contain;
+      background-repeat:no-repeat;
+      background-position:center;
+      background-color:#02101a;
+    }
+    .lb-side{
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      width:320px;
+    }
+    .lb-title{font-size:20px;margin:0}
+    .lb-desc{font-size:14px;color:rgba(230,238,246,0.78);line-height:1.45}
+    .lb-actions{margin-top:auto;display:flex;gap:8px}
+    .btn{
+      background:var(--glass);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,0.04);
+      padding:10px 12px;border-radius:10px;
+      text-decoration:none;font-weight:600;font-size:14px;
+      display:inline-flex;align-items:center;gap:8px;
+    }
+    .controls{
+      position:absolute;left:12px;right:12px;top:12px;display:flex;justify-content:space-between;
+    }
+    .ctrl{
+      background:rgba(0,0,0,0.35);padding:8px;border-radius:10px;color:white;font-size:18px;border:none;
+      backdrop-filter: blur(6px);
+    }
+
+    /* small screens */
+    @media (max-width:860px){
+      .lb-inner{grid-template-columns:1fr;}
+      .lb-side{width:auto;}
+      .thumb{padding-top:66%;}
+    }
+
+    /* accessibility helper */
+    .sr-only{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Nature Gallery</h1>
+      <p class="lead">Shundor prokritir chobi — click kore boro kore dekho.</p>
+    </div>
+    <div aria-hidden="true" style="text-align:right;color:rgba(143,211,166,0.9);font-weight:700;padding:6px 10px;border-radius:8px;background:rgba(143,211,166,0.05)">Explore</div>
+  </header>
+
+  <main>
+    <section class="gallery" id="gallery">
+      <!-- Card template: change data-* attributes or background-image URLs -->
+      <article class="card" tabindex="0" role="button"
+               data-full="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80"
+               data-title="Mountain Sunrise"
+               data-desc="A golden sunrise painting the mountain ridges. Photographer: Unsplash">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=60')" aria-hidden="true"></div>
+        <div class="caption">
+          <div class="title">Mountain Sunrise</div>
+          <div class="meta">Mountains</div>
+        </div>
+      </article>
+
+      <article class="card" tabindex="0" role="button"
+               data-full="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80"
+               data-title="Forest Mist"
+               data-desc="Misty forest in the early morning light.">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=60')"></div>
+        <div class="caption">
+          <div class="title">Forest Mist</div>
+          <div class="meta">Forest</div>
+        </div>
+      </article>
+
+      <article class="card" tabindex="0" role="button"
+               data-full="https://images.unsplash.com/photo-1501785888043-0c2b6a0d5c50?auto=format&fit=crop&w=1600&q=80"
+               data-title="River Bend"
+               data-desc="Calm river flowing through green valley.">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1501785888043-0c2b6a0d5c50?auto=format&fit=crop&w=800&q=60')"></div>
+        <div class="caption">
+          <div class="title">River Bend</div>
+          <div class="meta">River</div>
+        </div>
+      </article>
+
+      <article class="card" tabindex="0" role="button"
+               data-full="https://images.unsplash.com/photo-1501785888042-4f3b5b1e1b3f?auto=format&fit=crop&w=1600&q=80"
+               data-title="Golden Field"
+               data-desc="Waves of golden grass under a wide sky.">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1501785888042-4f3b5b1e1b3f?auto=format&fit=crop&w=800&q=60')"></div>
+        <div class="caption">
+          <div class="title">Golden Field</div>
+          <div class="meta">Plains</div>
+        </div>
+      </article>
+
+      <article class="card" tabindex="0" role="button"
+               data-full="https://images.unsplash.com/photo-1501785888040-8c6c5f7f8b47?auto=format&fit=crop&w=1600&q=80"
+               data-title="Coastal Cliffs"
+               data-desc="Waves crashing against coastal cliffs.">
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1501785888040-8c6c5f7f8b47?auto=format&fit=crop&w=800&q=60')"></div>
+        <div class="caption">
+          <div class="title">Coastal Cliffs</div>
+          <div class="meta">Coast</div>
+        </div>
+      </article>
+
+      <!-- add more cards as needed -->
+    </section>
+  </main>
+
+  <!-- Lightbox / Modal -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="lb-inner" role="document">
+      <div class="lb-image" id="lbImage" aria-label="Expanded image view">
+        <div class="controls">
+          <button class="ctrl" id="prevBtn" aria-label="Previous (left arrow)">❮</button>
+          <button class="ctrl" id="nextBtn" aria-label="Next (right arrow)">❯</button>
+        </div>
+      </div>
+      <aside class="lb-side">
+        <h2 class="lb-title" id="lbTitle"></h2>
+        <p class="lb-desc" id="lbDesc"></p>
+        <div class="lb-actions">
+          <a id="downloadBtn" class="btn" download>Download</a>
+          <button id="closeBtn" class="btn" style="margin-left:auto">Close</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const cards = Array.from(document.querySelectorAll('.card'));
+      const lb = document.getElementById('lightbox');
+      const lbImage = document.getElementById('lbImage');
+      const lbTitle = document.getElementById('lbTitle');
+      const lbDesc = document.getElementById('lbDesc');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const closeBtn = document.getElementById('closeBtn');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+
+      let currentIndex = -1;
+
+      function openLightbox(i){
+        const card = cards[i];
+        const src = card.dataset.full;
+        const title = card.dataset.title || '';
+        const desc = card.dataset.desc || '';
+        lbImage.style.backgroundImage = `url('${src}')`;
+        lbTitle.textContent = title;
+        lbDesc.textContent = desc;
+        downloadBtn.href = src;
+        lb.classList.add('show');
+        lb.setAttribute('aria-hidden','false');
+        currentIndex = i;
+        // focus for accessibility
+        closeBtn.focus();
+      }
+
+      function closeLightbox(){
+        lb.classList.remove('show');
+        lb.setAttribute('aria-hidden','true');
+        currentIndex = -1;
+      }
+
+      function showNext(dir){
+        if(currentIndex === -1) return;
+        let n = currentIndex + (dir||1);
+        if(n < 0) n = cards.length -1;
+        if(n >= cards.length) n = 0;
+        openLightbox(n);
+      }
+
+      // attach events to cards
+      cards.forEach((c, idx) => {
+        c.addEventListener('click', () => openLightbox(idx));
+        c.addEventListener('keydown', (e) => {
+          if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(idx); }
+        });
+      });
+
+      // buttons
+      closeBtn.addEventListener('click', closeLightbox);
+      prevBtn.addEventListener('click', () => showNext(-1));
+      nextBtn.addEventListener('click', () => showNext(1));
+
+      // keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        if(lb.classList.contains('show')){
+          if(e.key === 'Escape') closeLightbox();
+          if(e.key === 'ArrowRight') showNext(1);
+          if(e.key === 'ArrowLeft') showNext(-1);
+        }
+      });
+
+      // click outside to close
+      lb.addEventListener('click', (e) => {
+        if(e.target === lb) closeLightbox();
+      });
+
+      // lazy-load: replace low-res previews with hi-res on open (already handled by openLightbox)
+      // optional: prefetch next image for smoother navigation
+      function prefetch(idx){
+        const nextIdx = (idx + 1) % cards.length;
+        const url = cards[nextIdx].dataset.full;
+        const img = new Image(); img.src = url;
+      }
+      // when opening, prefetch next
+      const origOpen = openLightbox;
+      openLightbox = function(i){ origOpen(i); prefetch(i); };
+
+      // expose for console (dev)
+      window.gallery = { open: openLightbox, close: closeLightbox };
+    })();
+  </script>
+</body>
+</html>
